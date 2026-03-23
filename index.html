@@ -11,6 +11,9 @@
         header { background: #1a1a1a; padding: 16px 32px; }
         header h1 { color: #fff; font-size: 20px; font-weight: 700; }
         header span { color: #888; font-size: 14px; }
+        header nav { display: flex; gap: 16px; }
+        header nav a { color: #888; text-decoration: none; font-size: 14px; }
+        header nav a:hover { color: #fff; }
         
         main { max-width: 900px; margin: 40px auto; padding: 0 24px; }
         
@@ -75,6 +78,11 @@
 <body>
     <header>
         <h1>Test Store <span>— GuardedPay Custom Integration Demo</span></h1>
+        <nav>
+            <a href="index.html"><strong>Redirect Flow</strong></a>
+            <a href="elements-payment.html">Payment Widget</a>
+            <a href="elements-button.html">Button Element</a>
+        </nav>
     </header>
 
     <main>

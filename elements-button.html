@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Store — SDK Elements (Button)</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8f9fa; color: #1a1a1a; }
+        header { background: #1a1a1a; padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; }
+        header h1 { color: #fff; font-size: 20px; font-weight: 700; }
+        header nav a { color: #888; text-decoration: none; font-size: 14px; margin-left: 16px; }
+        header nav a:hover { color: #fff; }
+        main { max-width: 600px; margin: 40px auto; padding: 0 24px; }
+        .config { background: #fff; border-radius: 12px; border: 1px solid #e5e5e5; padding: 24px; margin-bottom: 24px; }
+        .config h3 { font-size: 16px; font-weight: 700; margin-bottom: 12px; color: #0F4136; }
+        .config-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+        .config-row label { font-size: 12px; font-weight: 600; color: #666; display: block; margin-bottom: 4px; }
+        .config-row input, .config-row select { width: 100%; padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+        .cart { background: #fff; border-radius: 12px; border: 1px solid #e5e5e5; padding: 32px; }
+        .cart h2 { font-size: 20px; font-weight: 800; margin-bottom: 20px; }
+        .cart-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #eee; }
+        .cart-item:last-of-type { border-bottom: 2px solid #1a1a1a; }
+        .cart-total { display: flex; justify-content: space-between; padding: 16px 0; font-size: 20px; font-weight: 900; }
+        .badge { display: inline-block; background: #0F4136; color: #fff; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; margin-bottom: 16px; }
+        #guardedpay-button { margin-top: 20px; min-height: 50px; }
+        .status { margin-top: 16px; padding: 12px 16px; border-radius: 8px; font-size: 14px; display: none; }
+        .status.error { display: block; background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        .status.loading { display: block; background: #f0f9ff; color: #2563eb; border: 1px solid #bfdbfe; }
+        .callback-result { background: #fff; border-radius: 12px; border: 2px solid #5BBF4A; padding: 32px; margin-top: 24px; text-align: center; display: none; }
+        .callback-result h3 { color: #0F4136; font-size: 24px; margin-bottom: 8px; }
+        .callback-result .code { font-family: monospace; font-size: 32px; font-weight: 900; color: #0F4136; letter-spacing: 4px; margin: 16px 0; padding: 16px; background: #f0fdf4; border-radius: 8px; }
+        @media (max-width: 768px) { .config-row { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Test Store</h1>
+        <nav>
+            <a href="index.html">Redirect Flow</a>
+            <a href="elements-payment.html">Payment Widget</a>
+            <a href="elements-button.html"><strong>Button Element</strong></a>
+        </nav>
+    </header>
+    <main>
+        <div class="config">
+            <h3>Integration Settings</h3>
+            <div class="config-row">
+                <div>
+                    <label>API URL</label>
+                    <select id="apiUrl">
+                        <option value="https://api-dev.guardedpaypro.com">Dev</option>
+                        <option value="https://api.guardedpaypro.com">Prod</option>
+                    </select>
+                </div>
+                <div>
+                    <label>API Key</label>
+                    <input type="text" id="apiKey" placeholder="gp_live_..." />
+                </div>
+            </div>
+        </div>
+
+        <div class="cart">
+            <div class="badge">SDK Elements — Button</div>
+            <h2>Your Cart</h2>
+            <div class="cart-item"><span>BPC-157 (x1)</span><span>$89.99</span></div>
+            <div class="cart-item"><span>TB-500 (x1)</span><span>$48.49</span></div>
+            <div class="cart-total"><span>Total</span><span>$138.48</span></div>
+            
+            <button onclick="createSession()" style="width:100%;padding:14px;background:#eee;color:#1a1a1a;border:1px solid #ddd;border-radius:10px;font-size:14px;cursor:pointer;margin-top:8px;">Load GuardedPay Button</button>
+            <div class="status" id="status"></div>
+            <div id="guardedpay-button"></div>
+        </div>
+
+        <div class="callback-result" id="callbackResult">
+            <h3>Order Complete!</h3>
+            <p>Certificate code:</p>
+            <div class="code" id="certCode"></div>
+        </div>
+    </main>
+
+    <script src="https://cdn.guardedpaypro.com/sdk/guardedpay.js"></script>
+    <script>
+        window.addEventListener('load', function() {
+            var params = new URLSearchParams(window.location.search);
+            if (params.get('code') && params.get('status') === 'captured') {
+                document.getElementById('callbackResult').style.display = 'block';
+                document.getElementById('certCode').textContent = params.get('code');
+            }
+        });
+
+        async function createSession() {
+            var apiUrl = document.getElementById('apiUrl').value;
+            var apiKey = document.getElementById('apiKey').value;
+            var statusEl = document.getElementById('status');
+
+            if (!apiKey) { statusEl.className = 'status error'; statusEl.textContent = 'Enter API key above.'; return; }
+
+            statusEl.className = 'status loading';
+            statusEl.textContent = 'Creating session...';
+
+            try {
+                var res = await fetch(apiUrl + '/api/v1/checkout/sessions', {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + apiKey, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        amount_cents: 13848,
+                        callback_url: window.location.origin + window.location.pathname + '?order_id=TEST-' + Date.now(),
+                        customer: { email: 'test@example.com', first_name: 'Test', last_name: 'Customer' }
+                    })
+                });
+                var data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'HTTP ' + res.status);
+
+                statusEl.style.display = 'none';
+
+                if (typeof GuardedPayPro !== 'undefined') {
+                    var elements = GuardedPayPro.elements({ checkout_url: data.checkout_url, amount_cents: 13848 });
+                    var button = elements.create('button');
+                    button.on('click', function() { console.log('Redirecting to GuardedPay...'); });
+                    button.mount('#guardedpay-button');
+                } else {
+                    statusEl.className = 'status error';
+                    statusEl.textContent = 'SDK not loaded. Falling back to redirect...';
+                    setTimeout(function() { window.location.href = data.checkout_url; }, 2000);
+                }
+            } catch (err) {
+                statusEl.className = 'status error';
+                statusEl.textContent = 'Error: ' + err.message;
+            }
+        }
+    </script>
+</body>
+</html>
